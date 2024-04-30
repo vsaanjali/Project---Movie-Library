@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>MovieLibrary</title>
+    <!--Linking Google Fonts-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /*global styling*/
+        * {
+            box-sizing: border-box;
+            font-family: "Montserrat", sans-serif;
+        }
+
+        /*body styling*/
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        /*Navbar styling*/
+        .topnav {
+            width: 100%;
+            top: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            overflow: hidden;
+            background-color: #5ab9ea;
+            padding: 10px;
+            transition: 0.5s;
+            margin: 0px
+        }
+
+        /*Navbar Links*/
+        .topnav a {
+            font-size: 1.3rem;
+            font-weight: 500;
+            float: left;
+            display: block;
+            color: white;
+            text-align: left;
+            padding: 14px 0px 16px 20px;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        /*styling user input*/
+        input {
+            margin: 1rem 0rem 1rem 0rem;
+            width: 50%;
+            height: 2rem;
+            padding: 10px;
+        }
+
+        /*styling sign up section*/
+        .signup {
+            display: flex;
+            flex-direction: column;
+            width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 2rem;
+        }
+
+        /*styling signup button*/
+        .btn {
+
+            margin: 0.3rem 0rem 1rem 0rem;
+            background-color: #5ab9ea;
+            border-color: #5ab9ea;
+            padding: 5px;
+            color: white;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!--Creating Navbar-->
+    <div class="topnav">
+        <a class="active" href="index">Movie Library</a>
+    </div>
+
+    <!--Login Form-->
+    <div class="signup">
+        <h1>Sign up</h1>
+        <div class="signup-form">
+            <div class="email_div">
+                <label for="email" class="label"> Email Address</label>
+                <br>
+                <input type="email" class="control" id="email">
+
+            </div>
+            <div class="password_div">
+                <label for="password" class="label"> Password</label>
+                <br>
+                <input type="password" class="control" id="password">
+            </div>
+            <!--Signup Button-->
+            <button id="submit" type="submit" class="btn">Signup</button>
+
+            <br>
+            <!--Link to Login page-->
+            <a href="/login"> Already Have an Account?</a>
+        </div>
+    </div>
+
+    <script>
+        //function to send POST request with data
+        async function postData(url = '', data = {}) {
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            let rdata = await response.json()
+            return rdata
+        }
+
+        //event listener for signup button
+        let submit = document.getElementById("submit")
+        submit.addEventListener("click", async () => {
+            //fetching email & password inputs
+            let email = document.getElementById("email").value
+            let password = document.getElementById("password").value
+            console.log("Submitting this data", password, email)
+            //sending POST request with data
+            let resp = await postData("/signup", { email, password })
+            console.log(resp)
+            //handling response from server
+            if (resp.success) {
+                alert("User created")
+                //storing user data in localStorage
+                localStorage.setItem("user", JSON.stringify(resp.user))
+                document.getElementById("email").value = ""
+                document.getElementById("password").value = ""
+                window.location.href = 'index'
+            }
+            else {
+                alert(resp.message)
+                document.getElementById("email").value = ""
+                document.getElementById("password").value = ""
+            }
+
+        })
+
+
+    </script>
+</body>
+
+
+</html>

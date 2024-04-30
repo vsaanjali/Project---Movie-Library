@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <title>MovieLibrary</title>
+    <!--Linking Google Fonts-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /*global styling*/
+        * {
+            box-sizing: border-box;
+            font-family: "Montserrat", sans-serif;
+        }
+
+        /*body styling*/
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        /*Navbar styling*/
+        .topnav {
+            width: 100%;
+            top: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            overflow: hidden;
+            background-color: #5ab9ea;
+            padding: 10px;
+            transition: 0.5s;
+            margin: 0px
+        }
+
+        /*Navbar Links*/
+        .topnav a {
+            font-size: 1.3rem;
+            font-weight: 500;
+            float: left;
+
+            display: block;
+            color: white;
+            text-align: left;
+            padding: 14px 0px 16px 20px;
+            text-decoration: none;
+            text-transform: uppercase;
+
+        }
+
+        /*container styling*/
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 2rem;
+        }
+
+        /*input styling*/
+        input {
+            margin: 1rem 0rem 1rem 0rem;
+            width: 60%;
+            height: 2rem;
+            padding: 10px;
+        }
+
+        /*textarea styling*/
+        textarea {
+            margin: 1rem 0rem 1rem 0rem;
+            width: 60%;
+            height: 6rem;
+            padding: 10px;
+        }
+
+        /*button styling*/
+        .btn {
+
+            margin: 0.3rem 0rem 1rem 0rem;
+            background-color: #5ab9ea;
+            border-color: #5ab9ea;
+            padding: 5px;
+            color: white;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+
+        /*reviews container styling*/
+        #reviewsrow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, 20rem);
+            padding-bottom: 5rem;
+            justify-content: left;
+            column-gap: 1rem;
+            row-gap: 1rem;
+            margin: 0;
+            padding-left: 0;
+        }
+    </style>
+</head>
+
+
+<body>
+    <!--Creating Navbar-->
+    <div class="topnav">
+        <a class="active" href="index">Movie Library</a>
+    </div>
+    <!--Movie Review Submission Section-->
+    <div class="container">
+        <h1> Add a Review</h1>
+
+        <div class="review-form">
+            <label for="title" class="form-label"> User Nickname </label><br>
+            <input type="text" class="form-control" id="title">
+
+            <br>
+            <label for="desc" class="form-label">Movie Review </label><br>
+            <textarea type="text" class="form-control" id="desc"></textarea>
+
+            <br>
+            <button id="submit" type="submit" class="btn"> Submit</button>
+        </div>
+    </div>
+
+    <!--Reviews Display Section-->
+    <div class="container">
+        <h1> Reviews for:</h1>
+        <h2 id="movieTitle"> XYZ</h2>
+        <div class="container" id="reviewsrow">
+
+        </div>
+    </div>
+
+
+
+    <script>
+        //Function executed when page loads
+        window.onload = function () {
+            // Getting movie ID & Title from localStorage
+            const movieId = localStorage.getItem('movieId');
+            const movieTitle = localStorage.getItem('movieTitle');
+            //Displaying Movie title on page
+            console.log(movieId, movieTitle)
+            const title = document.getElementById("movieTitle");
+
+            title.innerText = movieTitle;
+            // Display the value on the page
+        };
+
+
+        // Function to send POST request with data
+        async function postData(url = '', data = {}) {
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            let rdata = await response.json()
+            return rdata
+        }
+        const user = JSON.parse(localStorage.getItem('user'))
+
+        // Function to fetch reviews and display them
+        const fetchNotes = () => {
+            let movieId = (localStorage.getItem('movieId'));
+            let movieID = parseInt(movieId)
+            let reviewContainer = document.getElementById("reviewsrow")
+            reviewContainer.innerHTML = ''
+            const reviews = postData('/getreview', { movieID: movieID })
+            reviews.then((reviews) => {
+                console.log("Reviews", reviews.reviews)
+                reviews.reviews.forEach(element => {
+                    let reviewLine1 = ' <div class="card" style="width:18rem;"> <div class="card-body"><h5 class="card-title">'
+                    let reviewTitle = element.title
+                    let reviewLine2 = '</h5><p class="card text">'
+                    let reviewDesc = element.description
+                    let reviewLine3 = '</p></div></div>'
+                    let review = reviewLine1 + reviewTitle + reviewLine2 + reviewDesc + reviewLine3
+
+                    reviewContainer.innerHTML += review
+
+                });
+
+            })
+        }
+
+        // Execute fetchNotes function to load reviews
+        fetchNotes()
+
+        // Event listener for submit button
+        let submit = document.getElementById("submit")
+        submit.addEventListener("click", async () => {
+            // Check if user is logged in
+            if (user && user.email) {
+                let title = document.getElementById("title").value
+                let desc = document.getElementById("desc").value
+                let movieId = (localStorage.getItem('movieId'));
+                let movieID = parseInt(movieId)
+                let email = JSON.parse(localStorage.getItem("user")).email
+                console.log('Submitting', title, desc, movieId)
+                // Sending data to server to add review
+                let resp = await postData("/addreview", { title: title, description: desc, movieID: movieID, user: email })
+                //Handling response from server
+                if (resp.success) {
+                    alert("Review Created")
+                    document.getElementById("title").value = ""
+                    document.getElementById("desc").value = ""
+                    fetchNotes()
+                }
+                else {
+                    alert("Both Fields are required!")
+                    document.getElementById("title").value = ""
+                    document.getElementById("desc").value = ""
+                }
+            }
+
+            else {
+                alert("Please login first")
+                window.location.href = 'login'
+            }
+        })
+    </script>
+</body>
+
+</html>

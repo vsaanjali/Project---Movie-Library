@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>MovieLibrary</title>
+  <!--Linking Google Fonts-->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet">
+  <style>
+
+    /*global styling*/
+    * {
+      box-sizing: border-box;
+      font-family: "Montserrat", sans-serif;
+    }
+    /*body styling*/
+    body {
+      background-color: #5ab9ea;
+      font-family: sans-serif;
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
+
+    h3 {
+      color: white;
+      text-align: center;
+    }
+
+    /*Navbar styling*/
+    .topnav {
+      width: 100%;
+      top: 0;
+      right: 0;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      overflow: hidden;
+      background-color: #5ab9ea;
+      padding: 10px;
+      transition: 0.5s;
+    }
+
+    /*Navbar Links*/
+    .topnav a {
+      font-size: 1.3rem;
+      font-weight: 500;
+      float: left;
+      display: block;
+      color: white;
+      text-align: left;
+      padding: 14px 0px 16px 20px;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    /*Navbar Search Container Styling*/
+    .topnav .search-container {
+      float: right;
+      max-width: 50%;
+      padding-right: 20px;
+    }
+
+    form {
+      background-color: #5ab9ea;
+      width: 300px;
+      height: 43px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+    }
+
+    input {
+      font: 15 px system-ui;
+      color: black;
+      height: 100%;
+      width: 95%;
+      padding: 6px 9px;
+    }
+ 
+    /*Grid displaying Movie Cards*/
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, 20rem);
+      padding: 10px;
+      justify-content: center;
+      column-gap: 50px;
+      row-gap: 50px;
+    }
+
+    /*Movie Cards*/
+    .card {
+      background-color: #5680e9;
+      border-radius: 19px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    /*Movie Card Posters*/
+    .thumbnail {
+      border-radius: 19px;
+      height: auto;
+      max-width: 100%;
+      aspect-ratio: 2/3;
+    }
+
+    /*Movie Card Title*/
+    .titlecontainer {
+      width: 90%;
+      height: 5rem;
+      text-align: center;
+      margin: auto;
+    }
+    
+    /*Review Button*/
+    .btn {
+      background-color: #84ceeb;
+      border-radius: 5px;
+      border-color: #84ceeb;
+      color: #000;
+      margin-top: 7px;
+      text-align: center;
+    }
+
+  </style>
+
+</head>
+
+<body>
+  <!--Creating Navbar-->
+  <div class="topnav">
+    <a class="active" href="index">Movie Library</a>
+    <div class="search-container">
+      <form role="search" id="form">
+        <input type="search" id="query" name="q" placeholder="Search...">
+      </form>
+    </div>
+  </div>
+
+  
+  <!--<div style="padding-left:16px"></div>-->
+
+  <!--Section for displaying Movie Cards-->
+  <section id="section">
+    <div class="grid-container" id="grid-container">
+
+    </div>
+  </section>
+
+
+  <script>
+    //API URLs
+    const moviedb_api = 'https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=<apikey>&page=1';
+    const movie_img = 'https://image.tmdb.org/t/p/w1280';
+    const search_api = 'https://api.themoviedb.org/3/search/movie?&api_key=<apikey>&query=';
+
+    //DOM elements
+    const main = document.getElementById("section");
+    const form = document.getElementById("form");
+    const search = document.getElementById("query");
+    const div_grid = document.getElementById('grid-container')
+
+    //initial function call to load movies
+    returnMovies(moviedb_api)
+    
+    //function to fetch and display movies from API
+    function returnMovies(url) {
+      fetch(url).then(res => res.json())
+        .then(function (data) {
+          console.log(data.results);
+          div_grid.innerHTML = '';//clearing previous content
+          data.results.forEach(element => {
+            //creating card elements  dynamically
+            const div_card = document.createElement('div');
+            div_card.setAttribute('class', 'card');
+
+
+            const div_title = document.createElement('div');
+            div_title.setAttribute('class', 'titlecontainer');
+
+            const image = document.createElement('img');
+            image.setAttribute('class', 'thumbnail');
+            image.setAttribute('id', 'image');
+
+            const title = document.createElement('h3');
+            title.setAttribute('id', 'title');
+
+            const center = document.createElement('center');
+
+            //sending Movie ID & title through function when respective review button clicked
+            title.innerHTML = `${element.title}<br><button class="btn" onclick="MovieReview('${element.id}','${element.title}')">reviews</button>`;
+
+            image.src = movie_img + element.poster_path;
+            
+            //appending elements in order to grid section
+            div_title.appendChild(title)
+            center.appendChild(image);
+            div_card.appendChild(center);
+            div_card.appendChild(div_title)
+            div_grid.appendChild(div_card);
+
+            main.appendChild(div_grid);
+          });
+        });
+    }
+
+    //function to redirect to reviews page of respective movie
+    function MovieReview(movieId, movieTitle) {
+      console.log(movieId, movieTitle);
+      var movieId = movieId;
+      var movieTitle = movieTitle;
+
+      // Storing ID & title values in localStorage
+      localStorage.setItem('movieId', movieId);
+      localStorage.setItem('movieTitle', movieTitle);
+
+      // Redirect to the reviews page
+      window.location.href = 'reviews';
+    }
+
+    //event listener for search form submission
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      main.innerHTML = '';
+
+      const searchItem = search.value;
+      //fetching movies based on search query
+      if (searchItem) {
+        returnMovies(search_api + searchItem);
+        search.value = "";
+      }
+    });
+  </script>
+</body>
+
+</html>
